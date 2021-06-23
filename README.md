@@ -1,4 +1,9 @@
 # terraform-aws-jenkins
+## Useage
+<!--- BEGIN_TF_DOCS --->
+<!--- END_TF_DOCS --->
+
+## Deployment
 To deploy this module you need to have:
 1. An existing VPC with at least two subnets
 2. A DockerHub hosted Jenkins image, and credentials with access to the image (and/or an override image)
@@ -31,7 +36,7 @@ inputs = {
 }
 ```
 
-## Jenkins Master Image
+### Jenkins Master Image
 Example Dockerfile. Note this allows for setup without user interference
 ```dockerfile
 FROM jenkins/jenkins:lts-alpine
