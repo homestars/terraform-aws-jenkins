@@ -67,4 +67,5 @@ variable "tls_certificate_arn" {
 
 variable "vpc_id" {
   description = "The id of the VPC"
+  type        = string
 }

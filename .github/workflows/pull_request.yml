@@ -1,0 +1,102 @@
+name: 'Terraform PR steps'
+
+on:
+  - pull_request
+env:
+  CODE_DIR: code
+  TFENV_DIR: tfenv
+
+jobs:
+  format:
+    name: 'Terraform Format and Validate'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: ${{env.CODE_DIR}}
+
+      - name: Checkout tfenv tool
+        uses: actions/checkout@v2
+        with:
+          repository: 'tfutils/tfenv'
+          ref: 'v2.2.2'
+          path: ${{env.TFENV_DIR}}
+
+      - name: Link tfenv to bin
+        run: echo ${{github.workspace}}/${{env.TFENV_DIR}}/bin >> $GITHUB_PATH
+
+      - name: Install Terraform
+        run: tfenv install
+        working-directory: ${{env.CODE_DIR}}
+
+      - uses: terraform-linters/setup-tflint@v1
+        name: Setup TFLint
+        with:
+          tflint_version: v0.29.0
+
+      # Checks that all Terraform configuration files are valid
+      - name: Terraform Validate and Lint
+        run: ./.github/scripts/lint.sh
+        working-directory: ${{env.CODE_DIR}}
+
+      - name: Add and Commit
+        uses: EndBug/add-and-commit@v7
+        with:
+          add: "*.tf"
+          cwd: ${{env.CODE_DIR}}
+          message: 'Fixed formatting'
+
+  docs:
+    needs: format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Render terraform docs inside the README.md and push changes back to PR branch
+        uses: terraform-docs/gh-actions@v0.6.1
+        with:
+          output-file: README.md
+          output-method: inject
+          git-push: "true"
+
+  label:
+    needs: docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: fetch main branch
+        run: git fetch origin main:main
+
+      - name: Get diff size
+        run: echo "SIZE=$(git diff --shortstat main . ':(exclude)*.md' | cut -d' ' -f5)" >> $GITHUB_ENV
+
+      - uses: actions-ecosystem/action-add-labels@v1.1.0
+        if: ${{ ENV.SIZE == 0 }}
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          labels: norelease
+
+      - uses: actions-ecosystem/action-add-labels@v1.1.0
+        if: ${{ ENV.SIZE > 0 && ENV.SIZE < 100 }}
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          labels: release:patch
+
+      - uses: actions-ecosystem/action-add-labels@v1.1.0
+        if: ${{ ENV.SIZE > 100 && ENV.SIZE < 500 }}
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          labels: release:minor
+
+      - uses: actions-ecosystem/action-add-labels@v1.1.0
+        if: ${{ ENV.SIZE >= 500 }}
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          labels: release:major
