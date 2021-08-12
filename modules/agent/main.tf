@@ -94,7 +94,6 @@ data "aws_iam_policy_document" "assume_role_policy" {
   }
 }
 
-
 resource "aws_iam_role" "this" {
   name               = var.assume_role_name
   path               = var.assume_role_path
@@ -103,29 +102,5 @@ resource "aws_iam_role" "this" {
 
 resource "aws_iam_role_policy_attachment" "this" {
   role       = aws_iam_role.this.name
-  policy_arn = aws_iam_policy.create_tasks.arn
-}
-
-
-resource "aws_iam_role" "agent_task_creation_role" {
-  name = "jenkins_agent_task_creation_role"
-
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action    = "sts:AssumeRole"
-        Effect    = "Allow"
-        Sid       = ""
-        Principal = { "AWS" : "arn:aws:iam::${var.jenkins_master_account}:root" }
-      },
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "agent_task_creation_attachment" {
-  role       = aws_iam_role.agent_task_creation_role.name
   policy_arn = aws_iam_policy.create_tasks.arn
 }
