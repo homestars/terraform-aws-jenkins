@@ -94,13 +94,13 @@ data "aws_iam_policy_document" "assume_role_policy" {
   }
 }
 
-resource "aws_iam_role" "this" {
+resource "aws_iam_role" "agent_task_creation_role" {
   name               = var.assume_role_name
   path               = var.assume_role_path
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "this" {
-  role       = aws_iam_role.this.name
+  role       = aws_iam_role.agent_task_creation_role.name
   policy_arn = aws_iam_policy.create_tasks.arn
 }
