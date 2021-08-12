@@ -7,7 +7,7 @@ variable "assume_role_name" {
 variable "assume_role_path" {
   description = "Path of role to create for master to use"
   type        = string
-  default     = ""
+  default     = "/"
 }
 
 variable "dockerhub_credentials_arn" {
