@@ -1,3 +1,15 @@
+variable "assume_role_name" {
+  description = "Name of role to create for master to use"
+  type        = string
+  default     = "jenkins-agent-creator"
+}
+
+variable "assume_role_path" {
+  description = "Path of role to create for master to use"
+  type        = string
+  default     = ""
+}
+
 variable "dockerhub_credentials_arn" {
   description = "ARN of dockerhub credentials username/password entry in AWS Secrets Manager"
   type        = string
